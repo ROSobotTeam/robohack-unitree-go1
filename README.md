@@ -4,7 +4,7 @@
 
 | Аргумент | Задание | Основные файлы |
 |---|---|---|
-| `ping` | Проверка образа (T0): печатает `ping.json` | `ping.json` |
+| `ping` | Проверка образа: печатает `ping.json` | `ping.json` |
 | `T2` | Safety Block | `safety_block.py`, `safety_checks.py`, `collision_checks.py`, `model/` |
 | `T3` | Ходьба с RL-политикой | `t3_controller.py`, `go1_policy.py`, `policy.npz`, `check_t3.py`, `training/` |
 | `T4` | Одометрия | `odom_node.py` |
