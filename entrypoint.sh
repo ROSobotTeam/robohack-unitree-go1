@@ -29,8 +29,12 @@ case "${1:-}" in
         trap 'exit 143' TERM
         wait -n "$safety_pid" "$policy_pid"
         ;;
+    T4)
+        shift
+        source /opt/ros/humble/setup.bash
+        exec python3 /opt/go1/odom_node.py "$@"
     *)
-        printf '%s\n' 'Usage: /entrypoint.sh ping|T2|T3' >&2
+        printf '%s\n' 'Usage: /entrypoint.sh ping|T2|T3|T4' >&2
         exit 2
         ;;
 esac
