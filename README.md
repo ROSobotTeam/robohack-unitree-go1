@@ -23,14 +23,14 @@ docker run --rm --network none rosobot-t2:dev ping
 
 ### Сборка и проверка
 
-В WSL из корня исходников T2 и T3 выполни сборку и проверку `ping`. Для локальной подготовки этот каталог находится в `/mnt/c/Users/pzapa/Desktop/7_sem/hakaton/t3-release`.
+В WSL из корня репозитория команды собери образ и проверь `ping`.
 
 ```bash
 docker buildx build --builder default --provenance=false --platform linux/amd64 --load -t rosobot-t3:release-candidate .
 timeout 10s docker run --rm --pull=never --network none rosobot-t3:release-candidate ping
 ```
 
-В первом терминале WSL из `/home/pzapa/go1-simulator-public` запусти пару контейнеров. Дождись `Pair started` и оставь терминал работающим.
+В первом терминале WSL из корня клона симулятора `go1-simulator-public` запусти пару контейнеров. Дождись `Pair started` и оставь терминал работающим.
 
 ```bash
 python3 run_local.py --task T3 --headless --logs \
