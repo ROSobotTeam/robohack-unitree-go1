@@ -1,5 +1,16 @@
 # robohack-unitree-go1
 
+Решение команды для заочного этапа хакатона Unitree Go1. Все задания собираются в **один Docker-образ**, а `/entrypoint.sh` выбирает режим по аргументу.
+
+| Аргумент | Задание | Основные файлы |
+|---|---|---|
+| `ping` | Проверка образа (T0): печатает `ping.json` | `ping.json` |
+| `T2` | Safety Block | `safety_block.py`, `safety_checks.py`, `collision_checks.py`, `model/` |
+| `T3` | Ходьба с RL-политикой | `t3_controller.py`, `go1_policy.py`, `policy.npz`, `check_t3.py`, `training/` |
+| `T4` | Одометрия | `odom_node.py` |
+
+В `ping.json` указаны поддерживаемые задания: `T2`, `T3`, `T4`. Режим выбирается аргументом `/entrypoint.sh`. Все задания входят в один образ, поэтому команды сборки в разделах ниже дают один и тот же образ.
+
 ## T2 — Safety Block
 
 Узел проверяет команды из `/lowcmd_bare` и публикует безопасные команды в `/lowcmd`.
@@ -60,3 +71,34 @@ docker exec -i --workdir /home/ros "$SIM_CONTAINER" bash -c \
 - `training/t3-series-20261124.json` содержит отдельный локальный отчёт об интеграции через Safety Block. Диагностическая сборка прошла 9 из 10 эпизодов на 0,3 м/с.
 
 В проверке `sim2sim` ноутбук применяет моменты напрямую в MuJoCo и моделирует фиксированные задержки 0 и 20 мс. В локальном отчёте проверен запуск через ROS 2 и Safety Block.
+
+## T4 — Одометрия
+
+Узел `odom_node.py` оценивает позу корпуса робота и публикует `/odom` (`nav_msgs/Odometry`, `odom → trunk`) и TF `odom → trunk` с частотой 50 Гц по sim time. Курс берётся из IMU (`/imu/data`), положение считается по скорости из `/cmd_vel` с калибровкой по Gazebo/CHAMP. Ground truth в решении не используется.
+
+### Сборка и проверка
+
+Из корня репозитория команды собери образ и проверь `ping`.
+
+```bash
+docker buildx build --builder default --provenance=false --platform linux/amd64 --load -t rosobot-t4:dev .
+timeout 10s docker run --rm --pull=never --network none rosobot-t4:dev ping
+```
+
+В первом терминале из корня клона симулятора `go1-simulator-public` запусти пару контейнеров. Дождись `Pair started` и оставь терминал работающим. Узел одометрии запускается сам командой `/entrypoint.sh T4`.
+
+```bash
+python3 run_local.py --task T4 --headless --logs \
+  --sim-image registry.cookcloud.ru/go1-hackathon-remote-stage/go1-sim:v1.0 \
+  --participant-image rosobot-t4:dev
+```
+
+Во втором терминале проверь публикацию `/odom` и TF внутри контейнера Simulator. Введи имя из актуальной строки `Simulator=`. Команда покажет единственного издателя `/odom`, частоту (в реальном времени, по sim time она выше, так как симуляция идёт медленнее) и преобразование `odom → trunk`.
+
+```bash
+read -r -p 'Имя контейнера из строки Simulator=: ' SIM_CONTAINER
+docker exec -i --workdir /home/ros "$SIM_CONTAINER" bash -c \
+  'source /opt/ros/humble/setup.bash && source /home/ros/go1_ws/install/setup.bash && source /etc/go1_sim_env.sh && ros2 topic info /odom -v; timeout 10 ros2 topic hz /odom; timeout 5 ros2 run tf2_ros tf2_echo odom trunk'
+```
+
+После проверки останови первый терминал через `Ctrl+C`, чтобы завершить оба контейнера.
