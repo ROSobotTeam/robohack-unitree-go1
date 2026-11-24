@@ -42,11 +42,15 @@ WORKDIR /opt/go1
 COPY safety_checks.py collision_checks.py safety_block.py ping.json ./
 COPY go1_policy.py policy.npz t3_controller.py ./
 COPY model/ /opt/go1/model/
+COPY odom_node.py /opt/go1/odom_node.py
 COPY --chmod=0755 entrypoint.sh /entrypoint.sh
 
 USER participant
 RUN source /opt/ros/humble/setup.bash \
     && source /opt/unitree_ws/install/local_setup.bash \
     && python3 -c 'import mujoco; from unitree_go.msg import LowCmd; from collision_checks import CollisionChecker; checker = CollisionChecker("/opt/go1/model"); assert mujoco.__version__ == "3.3.7" and len(LowCmd().motor_cmd) == 20 and checker.pose_is_clear(checker.home_target)'
+
+RUN source /opt/ros/humble/setup.bash \
+    && python3 -c 'import ast, rclpy, tf2_ros; from nav_msgs.msg import Odometry; ast.parse(open("/opt/go1/odom_node.py").read())'
 
 ENTRYPOINT ["/entrypoint.sh"]
