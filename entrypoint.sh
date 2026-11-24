@@ -33,6 +33,7 @@ case "${1:-}" in
         shift
         source /opt/ros/humble/setup.bash
         exec python3 /opt/go1/odom_node.py "$@"
+        ;;
     *)
         printf '%s\n' 'Usage: /entrypoint.sh ping|T2|T3|T4' >&2
         exit 2
