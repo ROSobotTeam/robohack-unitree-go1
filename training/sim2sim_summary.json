@@ -1,0 +1,15 @@
+{
+  "preferred_speed_mps": 0.3,
+  "success_by_speed_latency_0ms": {
+    "0.2": 10,
+    "0.3": 10,
+    "0.4": 10,
+    "0.5": 10
+  },
+  "success_by_speed_latency_20ms": {
+    "0.2": 10,
+    "0.3": 10,
+    "0.4": 10,
+    "0.5": 10
+  }
+}
