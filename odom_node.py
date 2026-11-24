@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
-"""T4: одометрия Go1 (v2: откалибровано по логам симулятора).
-
-Курс (yaw) берётся из ориентации /imu/data, скорость - из /cmd_vel.
-Публикует /odom (odom -> trunk) и TF odom -> trunk с частотой 50 Гц по sim time.
-
-Калибровка (по записям ground truth в Gazebo/CHAMP, 4 прямых участка):
-  - реальная скорость вперёд ~0.917 от команды -> speed_scale = 0.917;
-  - при повороте на месте корпус смещается назад ~0.013 м/с -> turn_vx = -0.01;
-  - при ходьбе вперёд есть боковой снос влево ~7% от скорости -> lateral_ratio = 0.07.
-Ограничение: скорость берётся из /cmd_vel, поэтому, если робот упёрся в препятствие,
-а команды продолжают идти, одометрия «проедет» дальше, чем робот на самом деле.
-"""
 import math
-
 import rclpy
 from geometry_msgs.msg import Twist, TransformStamped
 from nav_msgs.msg import Odometry
@@ -22,15 +9,12 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu
 from tf2_ros import TransformBroadcaster
 
-
 def yaw_from_quat(q):
     return math.atan2(2.0 * (q.w * q.z + q.x * q.y),
                       1.0 - 2.0 * (q.y * q.y + q.z * q.z))
 
-
 def wrap(a):
     return math.atan2(math.sin(a), math.cos(a))
-
 
 class OdomNode(Node):
     def __init__(self):
@@ -61,7 +45,6 @@ class OdomNode(Node):
         self.cmd_t = -1e9
         self.last_t = None
 
-        # best_effort подходит и под reliable, и под best_effort издателей
         self.create_subscription(Imu, '/imu/data', self.imu_cb, qos_profile_sensor_data)
         self.create_subscription(Twist, '/cmd_vel', self.cmd_cb, qos_profile_sensor_data)
 
@@ -94,7 +77,6 @@ class OdomNode(Node):
     def tick(self):
         now = self.get_clock().now()
         t = now.nanoseconds * 1e-9
-
         dt = 0.0
         if self.last_t is not None:
             dt = t - self.last_t
@@ -149,7 +131,6 @@ class OdomNode(Node):
         tf.transform.rotation.w = qw
         self.tf_br.sendTransform(tf)
 
-
 def main():
     rclpy.init()
     node = OdomNode()
@@ -161,7 +142,6 @@ def main():
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
