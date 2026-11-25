@@ -1,14 +1,41 @@
 #!/bin/bash
 set -e
 
-if [ "${1:-}" = "ping" ]; then
-    exec cat /opt/go1/ping.json
-fi
+case "${1:-}" in
+    ping)
+        exec cat /opt/go1/ping.json
+        ;;
+    T2|T3)
+        task=$1
+        shift
+        source /opt/ros/humble/setup.bash
+        source /opt/unitree_ws/install/local_setup.bash
+        if [ "$task" = T2 ]; then
+            exec python3 /opt/go1/safety_block.py "$@"
+        fi
+        # Keep the small policy matrices from competing with collision checking.
+        export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+        python3 /opt/go1/t3_controller.py safety &
+        safety_pid=$!
+        python3 /opt/go1/t3_controller.py policy &
+        policy_pid=$!
 
-if [ "${1:-}" = "T5" ]; then
-    source /opt/ros/humble/setup.bash
-    exec ros2 launch /opt/go1/src/t5_launch.py
-fi
-
-printf '%s\n' 'Usage: /entrypoint.sh {ping|T5}' >&2
-exit 2
+        stop_nodes() {
+            kill "$safety_pid" "$policy_pid" 2>/dev/null || true
+            wait "$safety_pid" "$policy_pid" 2>/dev/null || true
+        }
+        trap stop_nodes EXIT
+        trap 'exit 130' INT
+        trap 'exit 143' TERM
+        wait -n "$safety_pid" "$policy_pid"
+        ;;
+    T4)
+        shift
+        source /opt/ros/humble/setup.bash
+        exec python3 /opt/go1/odom_node.py "$@"
+        ;;
+    *)
+        printf '%s\n' 'Usage: /entrypoint.sh ping|T2|T3|T4' >&2
+        exit 2
+        ;;
+esac
