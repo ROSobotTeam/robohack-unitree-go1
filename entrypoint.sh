@@ -34,8 +34,13 @@ case "${1:-}" in
         source /opt/ros/humble/setup.bash
         exec python3 /opt/go1/odom_node.py "$@"
         ;;
+    T5)
+        shift
+        source /opt/ros/humble/setup.bash
+        exec ros2 launch /opt/go1/src/t5_launch.py "$@"
+        ;;
     *)
-        printf '%s\n' 'Usage: /entrypoint.sh ping|T2|T3|T4' >&2
+        printf '%s\n' 'Usage: /entrypoint.sh ping|T2|T3|T4|T5' >&2
         exit 2
         ;;
 esac

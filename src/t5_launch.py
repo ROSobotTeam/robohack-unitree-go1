@@ -10,6 +10,11 @@ def generate_launch_description():
     slam_params = os.path.join(src_dir, 'slam_params.yaml')
     nav2_params = os.path.join(src_dir, 'nav2_params.yaml')
 
+    odom_node = ExecuteProcess(
+        cmd=['python3', '/opt/go1/odom_node.py'],
+        output='screen'
+    )
+
     slam_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -44,6 +49,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        odom_node,
         slam_launch,
         nav2_launch,
         aruco_node,

@@ -28,6 +28,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3-pip libgl1 libglfw3 \
         ros-humble-rmw-cyclonedds-cpp ros-humble-rosidl-default-runtime \
+        ros-humble-navigation2 ros-humble-nav2-bringup \
+        ros-humble-slam-toolbox ros-humble-cv-bridge python3-opencv \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m pip install --no-cache-dir "numpy==1.26.4" "mujoco==3.3.7" \
     && useradd --create-home --uid 10001 participant
@@ -43,6 +45,7 @@ COPY safety_checks.py collision_checks.py safety_block.py ping.json ./
 COPY go1_policy.py policy.npz t3_controller.py ./
 COPY model/ /opt/go1/model/
 COPY odom_node.py /opt/go1/odom_node.py
+COPY src/ /opt/go1/src/
 COPY --chmod=0755 entrypoint.sh /entrypoint.sh
 
 USER participant
@@ -51,6 +54,6 @@ RUN source /opt/ros/humble/setup.bash \
     && python3 -c 'import mujoco; from unitree_go.msg import LowCmd; from collision_checks import CollisionChecker; checker = CollisionChecker("/opt/go1/model"); assert mujoco.__version__ == "3.3.7" and len(LowCmd().motor_cmd) == 20 and checker.pose_is_clear(checker.home_target)'
 
 RUN source /opt/ros/humble/setup.bash \
-    && python3 -c 'import ast, rclpy, tf2_ros; from nav_msgs.msg import Odometry; ast.parse(open("/opt/go1/odom_node.py").read())'
+    && python3 -c 'import ast, rclpy, tf2_ros, cv2; from nav_msgs.msg import Odometry; ast.parse(open("/opt/go1/odom_node.py").read()); ast.parse(open("/opt/go1/src/aruco_node.py").read())'
 
 ENTRYPOINT ["/entrypoint.sh"]

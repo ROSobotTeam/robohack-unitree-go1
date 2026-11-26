@@ -34,7 +34,7 @@ class ArucoDetectorNode(Node):
 
         # Профиль с глубиной очереди 1: берём только самый свежий кадр, чтобы не грузить CPU
         cam_qos = QoSProfile(
-            reliability=ReliabilityPolicy.BEST_EFFORT,
+            reliability=ReliabilityPolicy.RELIABLE,
             history=HistoryPolicy.KEEP_LAST,
             depth=1
         )

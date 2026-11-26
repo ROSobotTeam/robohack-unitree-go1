@@ -3,7 +3,8 @@
   "supported_tasks": [
     "T2",
     "T3",
-    "T4"
+    "T4",
+    "T5"
   ],
   "self_trained_rl": true,
   "preferred_speed_mps": 0.3
