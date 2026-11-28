@@ -2,13 +2,14 @@
 """
 Go1 odometry experiment: IMU yaw + robust LiDAR point-to-line translation matching.
 
-Publishes /odom and odom->trunk TF at 20 Hz (sim time when enabled).
+Publishes /odom and odom->trunk TF at 50 Hz (simulation time).
 No pip installs required beyond existing NumPy/SciPy in the ROS environment.
 """
 import math
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import LaserScan, Imu
 from nav_msgs.msg import Odometry
@@ -124,9 +125,11 @@ def point_line_translation(curr, prev_pts, prev_normals, yaw_delta,
 class OdomNode(Node):
     def __init__(self):
         super().__init__('odom_node')
+        # Always use simulation clock for the hackathon simulator.
+        self.set_parameters([Parameter('use_sim_time', value=True)])
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('imu_topic', '/imu/data')
-        self.declare_parameter('publish_rate', 20.0)
+        self.declare_parameter('publish_rate', 50.0)
         self.declare_parameter('lidar_offset_x', 0.22)
         self.declare_parameter('max_translation_per_scan', 0.10)
         self.scan_topic = self.get_parameter('scan_topic').value
