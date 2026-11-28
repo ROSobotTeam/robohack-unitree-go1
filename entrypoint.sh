@@ -32,7 +32,7 @@ case "${1:-}" in
     T4)
         shift
         source /opt/ros/humble/setup.bash
-        exec python3 /opt/go1/odom_node.py "$@"
+        exec python3 /opt/go1/odom_node.py --ros-args -p use_sim_time:=true "$@"
         ;;
     *)
         printf '%s\n' 'Usage: /entrypoint.sh ping|T2|T3|T4' >&2
