@@ -29,7 +29,7 @@ RUN apt-get update \
         python3-pip libgl1 libglfw3 \
         ros-humble-rmw-cyclonedds-cpp ros-humble-rosidl-default-runtime \
     && rm -rf /var/lib/apt/lists/* \
-    && python3 -m pip install --no-cache-dir "numpy==1.26.4" "mujoco==3.3.7" \
+    && python3 -m pip install --no-cache-dir "numpy==1.26.4" "mujoco==3.3.7" "scipy==1.11.4" \
     && useradd --create-home --uid 10001 participant
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
